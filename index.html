@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan Compare BD &#8212; Compare Loan Offers in Bangladesh</title>
+<meta name="description" content="Offline bilingual loan offer comparison tool for Bangladesh: EMI, total interest, total cost, repayment schedule and affordability check.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="app-header">
+  <div class="header-inner">
+    <div>
+      <h1 id="app-title" data-i18n="appTitle">Loan Compare BD</h1>
+      <p class="subtitle" data-i18n="appSubtitle">Compare loan offers side by side before you borrow</p>
+    </div>
+    <button id="lang-toggle" type="button" class="btn lang-btn" aria-label="Switch language">&#2476;&#2494;&#2434;&#2482;&#2494;</button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button type="button" class="tab-btn active" data-tab="compare" role="tab" aria-selected="true" data-i18n="tabCompare">Compare</button>
+  <button type="button" class="tab-btn" data-tab="schedule" role="tab" aria-selected="false" data-i18n="tabSchedule">Schedule</button>
+  <button type="button" class="tab-btn" data-tab="afford" role="tab" aria-selected="false" data-i18n="tabAfford">Affordability</button>
+  <button type="button" class="tab-btn" data-tab="data" role="tab" aria-selected="false" data-i18n="tabData">Data</button>
+</nav>
+
+<main>
+  <!-- ============ COMPARE ============ -->
+  <section id="tab-compare" class="tab-panel" aria-label="Compare">
+    <form id="offer-form" novalidate>
+      <h2 id="form-title">Add a loan offer</h2>
+      <div class="form-grid">
+        <label class="field span-2">
+          <span data-i18n="fName">Lender / offer name</span>
+          <input id="f-name" type="text" maxlength="60" data-i18n-ph="fNamePh" placeholder="e.g. City Bank - Personal" autocomplete="off">
+        </label>
+        <label class="field">
+          <span data-i18n="fType">Loan type</span>
+          <select id="f-type">
+            <option value="personal">Personal loan</option>
+            <option value="home">Home loan</option>
+            <option value="auto">Auto / car loan</option>
+            <option value="business">Business loan</option>
+            <option value="education">Education loan</option>
+          </select>
+        </label>
+        <label class="field">
+          <span data-i18n="fMethod">Interest method</span>
+          <span class="radio-row">
+            <label><input type="radio" name="f-method" value="reducing" checked> <span data-i18n="methodReducing">Reducing balance (EMI on remaining balance)</span></label>
+            <label><input type="radio" name="f-method" value="flat"> <span data-i18n="methodFlat">Flat rate (interest on full amount)</span></label>
+          </span>
+        </label>
+        <label class="field">
+          <span data-i18n="fAmount">Loan amount (BDT)</span>
+          <input id="f-amount" type="number" min="10000" max="100000000" step="1000" inputmode="numeric" placeholder="500000">
+        </label>
+        <label class="field">
+          <span data-i18n="fRate">Annual interest rate (%)</span>
+          <input id="f-rate" type="number" min="0" max="40" step="0.01" inputmode="decimal" placeholder="12.5">
+        </label>
+        <label class="field">
+          <span data-i18n="fTenure">Tenure (months)</span>
+          <input id="f-tenure" type="number" min="1" max="360" step="1" inputmode="numeric" placeholder="36">
+        </label>
+        <label class="field">
+          <span data-i18n="fFee">Processing fee (BDT)</span>
+          <input id="f-fee" type="number" min="0" max="10000000" step="100" inputmode="numeric" placeholder="0">
+        </label>
+        <label class="field">
+          <span data-i18n="fOther">Other charges (BDT)</span>
+          <input id="f-other" type="number" min="0" max="10000000" step="100" inputmode="numeric" placeholder="0">
+        </label>
+      </div>
+      <div id="form-errors" class="errors" role="alert" aria-live="polite"></div>
+      <div class="form-actions">
+        <button id="offer-submit" type="submit" class="btn primary">Add offer</button>
+        <button id="offer-cancel" type="button" class="btn hidden">Cancel</button>
+      </div>
+      <p id="form-msg" class="msg" aria-live="polite"></p>
+    </form>
+
+    <h2 data-i18n="offersTitle">Your offers</h2>
+    <div id="offers-list" class="offers-list"></div>
+
+    <h2 data-i18n="compareTableTitle">Side-by-side comparison</h2>
+    <div id="compare-table-wrap" class="table-wrap"></div>
+
+    <p class="disclaimer" data-i18n="disclaimer">Estimates only &#8212; not a bank offer. Rates change; always check the bank's written quote and the full schedule of charges before signing. Flat-rate loans look cheaper per month but usually cost more in total.</p>
+  </section>
+
+  <!-- ============ SCHEDULE ============ -->
+  <section id="tab-schedule" class="tab-panel hidden" aria-label="Schedule">
+    <h2 data-i18n="scheduleTitle">Repayment schedule</h2>
+    <label class="field inline">
+      <span data-i18n="schedulePick">Choose an offer</span>
+      <select id="schedule-pick"></select>
+    </label>
+    <p id="schedule-empty" class="empty hidden" data-i18n="scheduleEmpty">Add an offer first to see its schedule.</p>
+    <div id="schedule-content">
+      <p id="schedule-summary" class="summary-line"></p>
+      <p id="schedule-note" class="note"></p>
+      <h3 data-i18n="firstMonths">First 12 months</h3>
+      <div class="table-wrap">
+        <table class="sched-table">
+          <thead><tr>
+            <th data-i18n="monthCol">Month</th>
+            <th data-i18n="interestCol">Interest</th>
+            <th data-i18n="principalCol">Principal</th>
+            <th data-i18n="balanceCol">Balance left</th>
+          </tr></thead>
+          <tbody id="schedule-body"></tbody>
+        </table>
+      </div>
+      <h3 data-i18n="yearlyTitle">Year by year</h3>
+      <div class="table-wrap">
+        <table class="sched-table">
+          <thead><tr>
+            <th data-i18n="yearCol">Year</th>
+            <th data-i18n="interestCol">Interest</th>
+            <th data-i18n="principalCol">Principal</th>
+            <th data-i18n="paidCol">Paid</th>
+          </tr></thead>
+          <tbody id="yearly-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AFFORDABILITY ============ -->
+  <section id="tab-afford" class="tab-panel hidden" aria-label="Affordability">
+    <h2 data-i18n="affordTitle">Can you afford the EMI?</h2>
+    <label class="field inline">
+      <span data-i18n="affordIncome">Your monthly income (BDT)</span>
+      <input id="income-input" type="number" min="0" max="100000000" step="1000" inputmode="numeric" data-i18n-ph="affordIncomePh" placeholder="e.g. 60000">
+    </label>
+    <p id="afford-empty" class="empty" data-i18n="affordEmpty">Enter your monthly income to check each offer's EMI against it.</p>
+    <div id="afford-list" class="afford-list"></div>
+    <p class="note" data-i18n="affordNote">Rule of thumb only, not a bank rule: banks usually prefer total EMI within about 40% of monthly income. This check never sends your income anywhere &#8212; it stays on your device.</p>
+  </section>
+
+  <!-- ============ DATA ============ -->
+  <section id="tab-data" class="tab-panel hidden" aria-label="Data">
+    <h2 data-i18n="dataTitle">Your data</h2>
+    <div class="data-block">
+      <button id="export-btn" type="button" class="btn" data-i18n="exportBtn">Download backup (JSON)</button>
+    </div>
+    <div class="data-block">
+      <label class="field">
+        <span data-i18n="importLabel">Paste a backup JSON here, then press Import.</span>
+        <textarea id="import-text" rows="5" placeholder='{"app":"loan-compare-bd", ...}'></textarea>
+      </label>
+      <button id="import-btn" type="button" class="btn" data-i18n="importBtn">Import backup</button>
+    </div>
+    <div class="data-block danger-zone">
+      <h3 data-i18n="eraseTitle">Erase everything</h3>
+      <p data-i18n="eraseHint">Type DELETE exactly, then press Erase. This cannot be undone.</p>
+      <label class="field inline">
+        <input id="erase-input" type="text" autocomplete="off" placeholder="DELETE">
+      </label>
+      <button id="erase-btn" type="button" class="btn danger" data-i18n="eraseBtn">Erase all data</button>
+    </div>
+    <p id="data-msg" class="msg" aria-live="polite"></p>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <p>Loan Compare BD &#8212; 100% offline. Your offers and income never leave this device.</p>
+</footer>
+
+<script src="js/core.js"></script>
+<script src="js/data.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
